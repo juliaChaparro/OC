@@ -14,9 +14,10 @@ opereacao = {
     'data': '0010 00',
     'jmpr': '0011 00',
     'jmp': '0100 0000',
-    'clf': '0101',
+    'clf': '0101 0000',
     'in':'0111 0',
-    'out': '0111 1'
+    'out': '0111 1',
+    'swap' : ''
 }
 
 jcaez={
@@ -50,9 +51,6 @@ def read_source(file_path):
         lines = file.readlines()
     return [line.strip().lower() for line in lines if line.strip() and not line.startswith(';')]
 
-
-
-
 def parse_line(line):
     parts = line.split()
     if len(parts) == 0:
@@ -77,6 +75,7 @@ def translate_to_machine_code(lines):
            
             if instruction not in jcaez:
                 code = opereacao[instruction]
+                
             else:
                 code =  jcaez[instruction]
 
@@ -116,6 +115,13 @@ def translate_to_machine_code(lines):
                 elif(operands[0]=='address'):
                     code = opereacao[instruction]+'1'+register[operands[1]]
 
+            if instruction in 'swap':
+                N1 = opereacao['xor']+register[operands[0]]+register[operands[1]]
+                N2 = opereacao['xor']+register[operands[1]]+register[operands[0]]
+                N3 = opereacao['xor']+register[operands[0]]+register[operands[1]]
+                code = N1+ N2 +N3
+
+
             if instruction in jcaez:
                 if (operands[0].startswith('0x')):
                     N = int(operands[0],16)
@@ -131,13 +137,6 @@ def translate_to_machine_code(lines):
 
     return machine_code 
 
-
-def write_outputfile(memory_file, machine_code):
-    with open(memory_file, "w") as f:
-        for code in machine_code:
-            f.write(f"{code}\n")
-
-
 def convert_binary_to_hexadecimal(codigo_binario):
     codigo_binario = codigo_binario.replace(' ', '')  
     return hex(int(codigo_binario, 2))[2:].upper().zfill(2)
@@ -150,6 +149,7 @@ def convert_to_hex(machine_code):
         hex_word = convert_binary_to_hexadecimal(code)
         
         x = xecar(hex_word)
+        
         hex_words += x                                            
 
     return hex_words
@@ -166,8 +166,15 @@ def output_file(memory, path):
             output_file.write(f'{i:02x}: ')
             output_file.write(memory[i] + "\n")
 
-
 def xecar(hex_code):
+
+    if len (hex_code)==6:
+        m = hex_code[:2]
+        k = hex_code[2:]
+        l = hex_code[4:]
+        return[m,k,l]
+    
+
     if len(hex_code) <= 2:
         return [hex_code]
     else:
