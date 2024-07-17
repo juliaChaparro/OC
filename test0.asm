@@ -1,0 +1,15 @@
+ld r2,r1
+ST r2,r1
+DATA r3,0xff
+JMPR r2
+JMP 0b00000000
+JC 3
+CLF
+ADD r0,r1
+SHR r2,r2
+SHL r0,r0
+NOT r1,r1
+AND r3,r2
+OR r2,r1
+XOR r1,r1
+CMP r0,r0

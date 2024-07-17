@@ -14,11 +14,13 @@ opereacao = {
     'data': '0010 00',
     'jmpr': '0011 00',
     'jmp': '0100 0000',
-    'clf': '0101 0000',
+    'clf': '0110 0000',
     'in':'0111 0',
     'out': '0111 1',
-    'swap' : ''
+    'swap' : '',
+    'halt': ''
 }
+
 
 jcaez={
     'jc': '0101 1000',
@@ -72,12 +74,9 @@ def translate_to_machine_code(lines):
     for line in lines:
         instruction, operands = parse_line(line)
         if instruction in opereacao or instruction in jcaez:
-           
-            if instruction not in jcaez:
-                code = opereacao[instruction]
-                
-            else:
-                code =  jcaez[instruction]
+            
+            if instruction in 'clf':
+                machine_code.append(opereacao['clf']) 
 
             if instruction == 'data':
                 if (operands[1].startswith('0x')):
@@ -86,12 +85,14 @@ def translate_to_machine_code(lines):
                     N = int (operands[1], 2)
                 else:
                     N = int(operands[1])
-                code += register[operands[0]] + format(N, '08b') 
+                machine_code.append(opereacao['data']+register[operands[0]])
+                machine_code.append(format(N,'08b')) 
+
             if instruction in ['and','or','xor','cmp','ld','st','not','shl','shr','add']:
-                code = opereacao[instruction]+register[operands[0]]+register[operands[1]]
+                machine_code.append(opereacao[instruction]+register[operands[0]]+register[operands[1]])
 
             if instruction == 'jmpr':
-                code = opereacao[instruction]+register[operands[0]]
+                machine_code.append(opereacao[instruction]+register[operands[0]])
 
             if instruction == 'jmp':
 
@@ -101,26 +102,32 @@ def translate_to_machine_code(lines):
                     N = int (operands[0], 2)
                 else:
                     N = int(operands[0])
-                code += format(N, '08b') 
+                machine_code.append(opereacao['jmp'])    
+                machine_code.append(format(N, '08b')) 
             
             if instruction in 'in':
                 if (operands[0]== 'data'):
-                    code =  opereacao[instruction]+'0'+register[operands[1]]
+                    machine_code.append(opereacao[instruction]+'0'+register[operands[1]])
                 elif(operands[0]=='address'):
-                    code =  opereacao[instruction]+'1'+register[operands[1]]
+                    machine_code.append(opereacao[instruction]+'1'+register[operands[1]])
 
             if instruction in 'out':
                 if (operands[0]=='data'):
-                    code =  opereacao[instruction]+'0'+register[operands[1]]
+                    machine_code.append(opereacao[instruction]+'0'+register[operands[1]])
                 elif(operands[0]=='address'):
-                    code = opereacao[instruction]+'1'+register[operands[1]]
+                    machine_code.append(opereacao[instruction]+'1'+register[operands[1]])
 
             if instruction in 'swap':
                 N1 = opereacao['xor']+register[operands[0]]+register[operands[1]]
                 N2 = opereacao['xor']+register[operands[1]]+register[operands[0]]
-                N3 = opereacao['xor']+register[operands[0]]+register[operands[1]]
-                code = N1+ N2 +N3
+                machine_code.append(N1)
+                machine_code.append(N2)
+                machine_code.append(N1)
 
+            if instruction in 'halt':
+                n = bin(len(machine_code))
+                machine_code.append(opereacao['jmp'])
+                machine_code.append(n)
 
             if instruction in jcaez:
                 if (operands[0].startswith('0x')):
@@ -129,11 +136,8 @@ def translate_to_machine_code(lines):
                     N = int (operands[0], 2)
                 else:
                     N = int(operands[0])
-
-                code = jcaez[instruction]+format(N,'08b')
-
-
-        machine_code.append(code)
+                machine_code.append(jcaez[instruction])
+                machine_code.append(format(N ,'08b'))
 
     return machine_code 
 
@@ -167,14 +171,7 @@ def output_file(memory, path):
             output_file.write(memory[i] + "\n")
 
 def xecar(hex_code):
-
-    if len (hex_code)==6:
-        m = hex_code[:2]
-        k = hex_code[2:]
-        l = hex_code[4:]
-        return[m,k,l]
     
-
     if len(hex_code) <= 2:
         return [hex_code]
     else:
