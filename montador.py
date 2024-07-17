@@ -1,5 +1,8 @@
 import sys
 
+
+
+# dicionario das operaçoes
 opereacao = {
     'add': '1000',
     'shr': '1001',
@@ -21,7 +24,7 @@ opereacao = {
     'halt': ''
 }
 
-
+#dicionario das operacoes do JCAEZ
 jcaez={
     'jc': '0101 1000',
     'ja': '0101 0100',
@@ -40,6 +43,7 @@ jcaez={
     'jcaez': '0101 1111'
 }
 
+#dicionario dos registrador
 register = {
     'r0':'00',
     'r1': '01',
@@ -47,12 +51,14 @@ register = {
     'r3':'11'
 }
 
-
+#funcao que vai ler e tirar os erros, para ler melhor o programa
 def read_source(file_path):
     with open(file_path, 'r') as file:
         lines = file.readlines()
     return [line.strip().lower() for line in lines if line.strip() and not line.startswith(';')]
 
+
+#funçao que vai pegar uma linha e dividir em intrucao e operador 
 def parse_line(line):
     parts = line.split()
     if len(parts) == 0:
@@ -68,7 +74,8 @@ def parse_line(line):
     return instruction, operands
 
 
-
+# funçao que pega a intruçao e os operadores e faz o codigo indicado
+# tranformando em um codigo binario 
 def translate_to_machine_code(lines):
     machine_code = []
     for line in lines:
@@ -141,24 +148,25 @@ def translate_to_machine_code(lines):
 
     return machine_code 
 
+# funcao que vai pegar o numero binario e tratamento no codigo binario e fazer a converçao
 def convert_binary_to_hexadecimal(codigo_binario):
     codigo_binario = codigo_binario.replace(' ', '')  
     return hex(int(codigo_binario, 2))[2:].upper().zfill(2)
 
 
+# funcao que vai pegar o valor em binario vai transformar para hex e vai checar se ta apito ao sistema 
 def convert_to_hex(machine_code):
     hex_words = []
 
     for code in machine_code:
         hex_word = convert_binary_to_hexadecimal(code)
         
-        x = xecar(hex_word)
-        
-        hex_words += x                                            
+        hex_words.append(hex_word)                                          
 
     return hex_words
 
 
+#funcao que vai escrever no arquivo 
 def output_file(memory, path):
     assert len(memory) <= 256
     
@@ -169,15 +177,6 @@ def output_file(memory, path):
         for i in range(len(memory)):
             output_file.write(f'{i:02x}: ')
             output_file.write(memory[i] + "\n")
-
-def xecar(hex_code):
-    
-    if len(hex_code) <= 2:
-        return [hex_code]
-    else:
-        m = hex_code[:2]
-        k = hex_code[2:]
-        return [m,k]
 
 
 
@@ -192,3 +191,4 @@ def assembler(source_file, output_file_path):
 source_file = sys.argv[1]
 output_file_path = sys.argv[2]
 assembler(source_file, output_file_path)
+
